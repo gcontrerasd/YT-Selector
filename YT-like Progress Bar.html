@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Selector with YT-like Progress Bar</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  #container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-width: 400px;
+    min-height: 300px;
+  }
+  #toolbar {
+    display: flex;
+    height: 50px;
+    border-bottom: 3px solid transparent;
+    position: relative;
+  }
+  .option {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-right: 1px solid #ccc;
+  }
+  .option:last-child {
+    border-right: none;
+  }
+  .selected {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  #progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: red;
+    width: 0;
+  }
+  #content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="toolbar">
+    <div class="option selected" id="All">All</div>
+    <div class="option" id="Opt1">Opt1</div>
+    <div class="option" id="Opt2">Opt2</div>
+    <div class="option" id="Opt3">Opt3</div>
+    <div id="progress"></div>
+  </div>
+  <div id="content">Currently selected: > All <</div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+  let options = location.hash ? location.hash.substring(1).split('|') : ['Opt1', 'Opt2', 'Opt3'];
+  let toolbar = $('#toolbar');
+  let progressBar = $('#progress');
+  let content = $('#content');
+  let selectedOptions = ['All'];
+  let timer;
+  
+  function initOptions() {
+    toolbar.empty();
+    toolbar.append('<div class="option selected" id="All">All</div>');
+    options.forEach(opt => {
+      toolbar.append(`<div class="option" id="${opt}">${opt}</div>`);
+    });
+    toolbar.append('<div id="progress"></div>');
+    progressBar = $('#progress');
+    attachClickHandlers();
+    updateContent();
+  }
+  
+  function attachClickHandlers() {
+    $('.option').click(function() {
+      let id = $(this).attr('id');
+      if (id === 'All') {
+        selectedOptions = ['All'];
+      } else {
+        if (selectedOptions.includes('All')) {
+          selectedOptions = [id];
+        } else {
+          let index = selectedOptions.indexOf(id);
+          if (index > -1) {
+            selectedOptions.splice(index, 1);
+            if (selectedOptions.length === 0) {
+              selectedOptions = ['All'];
+            }
+          } else {
+            selectedOptions.push(id);
+          }
+        }
+      }
+      updateUI();
+    });
+  }
+  
+  function updateUI() {
+    $('.option').removeClass('selected');
+    selectedOptions.forEach(opt => {
+      $(`#${opt}`).addClass('selected');
+    });
+    restartProgressBar();
+  }
+  
+  function updateContent() {
+    content.text(`Currently selected: > ${selectedOptions.join(', ')} <`);
+  }
+  
+  function restartProgressBar() {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    progressBar.stop(true).css('width', '0');
+    progressBar.animate({width: '100%'}, 3000);
+    timer = setTimeout(updateContent, 3000);
+  }
+  
+  initOptions();
+});
+</script>
+</body>
+</html>
